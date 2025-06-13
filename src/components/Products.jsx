@@ -20,7 +20,7 @@ const Products = () => {
             productName: "MacBook Air M2s",
             image: "https://placehold.co/600x400",
             description: "Ultra-thin laptop with Apple's M2 chip, providing fast performance in a lightweight, portable design.",
-            quantity: 0,
+            quantity: 10,
             price: 2550.0,
             discount: 20.0,
             specialPrice: 2040.0,
