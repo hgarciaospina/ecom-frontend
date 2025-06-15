@@ -30,6 +30,14 @@ const ProductCard = ({
     setOpenProductViewModal(true);
   };
 
+  // currency formatter
+  const formatCurrency = (value) =>
+    new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+    }).format(value);
+
   return (
     <div className="border rounded-lg shadow-xl overflow-hidden transition-shadow duration-300">
       <div
@@ -59,15 +67,15 @@ const ProductCard = ({
             {specialPrice ? (
               <>
                 <span className="text-gray-400 line-through">
-                  ${Number(price).toFixed(2)}
+                  {formatCurrency(price)}
                 </span>
                 <span className="text-xl font-bold text-slate-700">
-                  ${Number(specialPrice).toFixed(2)}
+                  {formatCurrency(specialPrice)}
                 </span>
               </>
             ) : (
               <span className="text-xl font-bold text-slate-700">
-                ${Number(price).toFixed(2)}
+                {formatCurrency(price)}
               </span>
             )}
           </div>

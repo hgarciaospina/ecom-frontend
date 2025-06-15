@@ -15,6 +15,14 @@ function ProductViewModal({ open, setOpen, product, isAvailable }) {
 
   const handleClose = () => setOpen(false);
 
+  // Formateador de moneda
+  const formatCurrency = (value) =>
+    new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+    }).format(value);
+
   return (
     <Dialog open={open} onClose={handleClose} className="relative z-50">
       <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
@@ -38,12 +46,12 @@ function ProductViewModal({ open, setOpen, product, isAvailable }) {
               {specialPrice ? (
                 <>
                   <span className="line-through text-gray-400 mr-2">
-                    ${price.toFixed(2)}
+                    {formatCurrency(price)}
                   </span>
-                  ${specialPrice.toFixed(2)}
+                  {formatCurrency(specialPrice)}
                 </>
               ) : (
-                <>${price.toFixed(2)}</>
+                <>{formatCurrency(price)}</>
               )}
             </div>
 
