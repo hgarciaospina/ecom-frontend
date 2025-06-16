@@ -30,7 +30,6 @@ const ProductCard = ({
     setOpenProductViewModal(true);
   };
 
-  // currency formatter
   const formatCurrency = (value) =>
     new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -39,17 +38,18 @@ const ProductCard = ({
     }).format(value);
 
   return (
-    <div className="border rounded-lg shadow-xl overflow-hidden transition-shadow duration-300">
+    <div className="rounded-2xl bg-white overflow-hidden shadow-[inset_0_0_5px_rgba(0,0,0,0.05),0_10px_20px_rgba(0,0,0,0.15)] hover:shadow-[inset_0_0_5px_rgba(0,0,0,0.05),0_20px_30px_rgba(0,0,0,0.25)] transform hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 hover:bg-gradient-to-br from-white to-slate-100">
       <div
         onClick={handleProductView}
-        className="w-full overflow-hidden aspect-[3/2]"
+        className="w-full h-48 bg-white flex items-center justify-center overflow-hidden cursor-pointer"
       >
         <img
-          className="w-full h-full cursor-pointer transition-transform duration-300 transform hover:scale-105"
+          className="h-full w-full object-contain transition-transform duration-300 hover:scale-105"
           src={image}
           alt={productName}
         />
       </div>
+
       <div className="p-4 flex flex-col gap-2">
         <h2
           onClick={handleProductView}
