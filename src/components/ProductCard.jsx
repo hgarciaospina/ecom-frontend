@@ -7,14 +7,14 @@ const ProductCard = ({
   productName,
   image,
   description,
-  quantity,
+  stock,
   price,
   discount,
   specialPrice,
 }) => {
   const [openProductViewModal, setOpenProductViewModal] = useState(false);
   const [SelectedViewProduct, setSelectedViewProduct] = useState(null);
-  const isAvailable = quantity && Number(quantity) > 0;
+  const isAvailable = stock && Number(stock) > 0;
 
   const handleProductView = () => {
     setSelectedViewProduct({
@@ -22,7 +22,7 @@ const ProductCard = ({
       productName,
       image,
       description,
-      quantity,
+      stock,
       price,
       discount,
       specialPrice,
