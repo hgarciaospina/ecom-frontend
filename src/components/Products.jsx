@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { FaExclamationTriangle } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProducts } from "../store/actions";
+import Filter from "./Filter";
 import ProductCard from "./ProductCard";
 
 const Products = () => {
@@ -20,6 +21,7 @@ const Products = () => {
    
     return (
         <div className="lg:px-14 sm:px-8 px-4 py-14 2xl:w-[90%] 2xl:mx-auto">
+            <Filter />
             {isLoading ? (
                 <p>It is loading...</p>
             ) : errorMessage ? (
