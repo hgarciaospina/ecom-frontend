@@ -1,7 +1,8 @@
 import { Button, FormControl, InputLabel, MenuItem, Select, Tooltip } from '@mui/material';
-import { useState } from 'react';
-import { FiArrowUp, FiRefreshCw } from 'react-icons/fi';
+import { useEffect, useState } from 'react';
+import { FiArrowDown, FiArrowUp, FiRefreshCw } from 'react-icons/fi';
 import { MdSearch } from 'react-icons/md';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 const Filter = () => {
   const initialCategories = [
@@ -12,20 +13,66 @@ const Filter = () => {
     { categoryId: 5, categoryName: "Toys" },
   ];
 
+  const [searchParams] = useSearchParams();
+  const params = new URLSearchParams(searchParams);
+  const pathname = useLocation().pathname;
+  const navigate = useNavigate();
+
   const categories = initialCategories.sort((a, b) =>
     a.categoryName.localeCompare(b.categoryName)
   );
 
   const [category, setCategory] = useState("all");
+  const [sortOrder, setSortOrder] = useState("asc");
+  const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    const currentCategory = searchParams.get("category") || "all";
+    const currentSortOrder = searchParams.get("sortby") || "asc";
+    const currentSearchTerm = searchParams.get("keyword") || "";
+
+    setCategory(currentCategory);
+    setSortOrder(currentSortOrder);
+    setSearchTerm(currentSearchTerm);
+  }, [searchParams]);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      searchTerm
+        ? searchParams.set("keyword", searchTerm)
+        : searchParams.delete("keyword");
+      navigate(`${pathname}?${searchParams.toString()}`);
+    }, 700);
+    
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchParams, searchTerm, navigate, pathname]);
 
   const handleCategoryChange = (event) => {
+    const selectedCategory = event.target.value;
+ 
+    selectedCategory === "all"
+      ? params.delete("category")
+      : params.set("category", selectedCategory);
+
+    navigate(`${pathname}?${params}`);
     setCategory(event.target.value);
   };
 
-  const handleClearFilter = () => {
-    setCategory("all");
+  const handleClearFilters = () => {
+    navigate({ pathname : window.location.pathname});
   };
 
+  const toggleSortOrder = () => {
+      setSortOrder((prevOrder) => {
+        const newOrder = (prevOrder === "asc") ? "desc" : "asc";
+        params.set("sortby", newOrder);
+        navigate(`${pathname}?${params}`);
+        return newOrder;
+    })
+  };
+  
   return (
     <div className="flex lg:flex-row flex-col-reverse lg:justify-between justify-center items-center gap-4 px-4 py-4 bg-white shadow-md rounded-xl">
       {/* SEARCH BAR */}
@@ -34,6 +81,7 @@ const Filter = () => {
         <input
           type="text"
           placeholder="Search products"
+          onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full py-2 pl-10 pr-4 rounded-xl border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 text-gray-800 placeholder-gray-400"
         />
       </div>
@@ -96,9 +144,10 @@ const Filter = () => {
           </Select>
         </FormControl>
 
-        {/* SORT BUTTON */}
-        <Tooltip title="Sort by price: ascending">
+        {/* SORT BUTTON & CLEAR FILTER*/}
+        <Tooltip title="Sort by price: asc">
           <Button
+            onClick={toggleSortOrder}
             variant="contained"
             sx={{
               background: 'linear-gradient(to right, #3b82f6, #2563eb)',
@@ -118,14 +167,19 @@ const Filter = () => {
             }}
           >
             Sort By
-            <FiArrowUp size={18} />
+            {sortOrder === "asc" ? (
+              <FiArrowUp size={18} />
+            ) : (
+              <FiArrowDown size={18} />
+            )}
+           
           </Button>
         </Tooltip>
 
         {/* CLEAR FILTER BUTTON */}
         <Button
           variant="contained"
-          onClick={handleClearFilter}
+          onClick={handleClearFilters}
           sx={{
             background: 'linear-gradient(to right, #dc2626, #b91c1c)',
             color: '#fff',
