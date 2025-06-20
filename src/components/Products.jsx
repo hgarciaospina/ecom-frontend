@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { FaExclamationTriangle } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
+import ElegantSpinner from "./ElegantSpinner"; // ✅ Import spinner component
 import Filter from "./Filter";
 import ProductCard from "./ProductCard";
 import useProductFilter from "./useProductFilter";
@@ -30,11 +31,9 @@ const Products = () => {
     <div className="lg:px-14 sm:px-8 px-4 py-14 2xl:w-[90%] 2xl:mx-auto">
       <Filter />
 
-      {/* 🧪 Handle loading state elegantly */}
+      {/* 🧪 Elegant loading state */}
       {isLoading && showSpinner ? (
-        <div className="flex justify-center items-center h-[400px]">
-          <div className="animate-spin rounded-full h-14 w-14 border-t-4 border-blue-500 border-solid"></div>
-        </div>
+        <ElegantSpinner />
       ) : errorMessage ? (
         <div className="flex justify-center items-center h-[200px]">
           <FaExclamationTriangle className="text-slate-800 text-3xl mr-2" />

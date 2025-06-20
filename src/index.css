@@ -1,2 +1,11 @@
 @import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+/* Spinner refined border animation */
+@layer utilities {
+    .spinner-border {
+      border-top-color: transparent;
+      border-right-color: #3B82F6;  /* Tailwind blue-500 */
+      border-bottom-color: #3B82F6;
+      border-left-color: #3B82F6;
+    }
+  }
