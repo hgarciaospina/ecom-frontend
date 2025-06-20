@@ -1,99 +1,106 @@
-import { Button, FormControl, InputLabel, MenuItem, Select, Tooltip } from '@mui/material';
-import { useEffect, useState } from 'react';
+import {
+  Button,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  Tooltip,
+} from '@mui/material';
+import { useEffect, useState, useTransition } from 'react';
+import { flushSync } from 'react-dom';
 import { FiArrowDown, FiArrowUp, FiRefreshCw } from 'react-icons/fi';
 import { MdSearch } from 'react-icons/md';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 const Filter = () => {
-  // Initial category options
+  // 🧩 Initial category options
   const initialCategories = [
-    { categoryId: 1, categoryName: "Smart Watch" },
-    { categoryId: 2, categoryName: "Headphones" },
-    { categoryId: 3, categoryName: "Laptop" },
-    { categoryId: 4, categoryName: "Electronics" },
-    { categoryId: 5, categoryName: "Clothing" },
-    { categoryId: 6, categoryName: "Furniture" },
-    { categoryId: 7, categoryName: "Books" },
-    { categoryId: 8, categoryName: "Toys" },
+    { categoryId: 1, categoryName: 'Smart Watch' },
+    { categoryId: 2, categoryName: 'Headphones' },
+    { categoryId: 3, categoryName: 'Laptop' },
+    { categoryId: 4, categoryName: 'Electronics' },
+    { categoryId: 5, categoryName: 'Clothing' },
+    { categoryId: 6, categoryName: 'Furniture' },
+    { categoryId: 7, categoryName: 'Books' },
+    { categoryId: 8, categoryName: 'Toys' },
   ];
 
   const [searchParams] = useSearchParams();
   const pathname = useLocation().pathname;
   const navigate = useNavigate();
 
-  // Sorted categories alphabetically
   const categories = initialCategories.sort((a, b) =>
     a.categoryName.localeCompare(b.categoryName)
   );
 
-  // Local state for filters
-  const [category, setCategory] = useState("all");
-  const [sortOrder, setSortOrder] = useState("asc");
-  const [searchTerm, setSearchTerm] = useState("");
+  const [category, setCategory] = useState('all');
+  const [sortOrder, setSortOrder] = useState('asc');
+  const [searchTerm, setSearchTerm] = useState('');
 
-  // Initialize filter state from query parameters
+  // ✅ React 19's useTransition avoids UI blocking by deferring transitions
+  const [isPending, startTransition] = useTransition();
+
+  // 🧠 Sync initial state from query string
   useEffect(() => {
-    setCategory(searchParams.get("category") || "all");
-    setSortOrder(searchParams.get("sortby") || "asc");
-    setSearchTerm(searchParams.get("keyword") || "");
+    setCategory(searchParams.get('category') || 'all');
+    setSortOrder(searchParams.get('sortby') || 'asc');
+    setSearchTerm(searchParams.get('keyword') || '');
   }, [searchParams]);
 
-  // Update URL with debounce when search term changes
+  // ⏳ Debounced search term update
   useEffect(() => {
     const handler = setTimeout(() => {
-      /**
-       * WHY WE USE `updatedParams` INSTEAD OF MODIFYING `searchParams`:
-       *
-       * React Router's `useSearchParams()` returns a special, immutable object.
-       * Direct mutation (e.g. searchParams.set(...)) and then triggering `navigate(...)`
-       * during the render phase causes a React error:
-       *
-       * > "Cannot update a component (`BrowserRouter`) while rendering a different component (`Filter`)."
-       *
-       * SOLUTION:
-       * We clone the object with `new URLSearchParams(searchParams)` and
-       * only call `navigate(...)` from within a controlled effect or event handler.
-       */
       const updatedParams = new URLSearchParams(searchParams);
-
       searchTerm.trim()
-        ? updatedParams.set("keyword", searchTerm.trim())
-        : updatedParams.delete("keyword");
-
+        ? updatedParams.set('keyword', searchTerm.trim())
+        : updatedParams.delete('keyword');
       navigate(`${pathname}?${updatedParams.toString()}`);
     }, 700);
-
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
-  // Handle category selection change
+  // ✅ CATEGORY CHANGE: State update only, navigation is deferred
   const handleCategoryChange = (event) => {
-    const selectedCategory = event.target.value;
-    const updatedParams = new URLSearchParams(searchParams);
-
-    selectedCategory === "all"
-      ? updatedParams.delete("category")
-      : updatedParams.set("category", selectedCategory);
-
-    navigate(`${pathname}?${updatedParams.toString()}`);
-    setCategory(selectedCategory);
+    const selected = event.target.value;
+    flushSync(() => setCategory(selected)); // Force update before UI paint
   };
 
-  // Clear all query parameters from URL
-  const handleClearFilters = () => navigate({ pathname });
+  // 🧠 Navigation after category is updated
+  useEffect(() => {
+    if (category === (searchParams.get('category') || 'all')) return;
 
-  // Toggle sort order and update query string
+    startTransition(() => {
+      const updatedParams = new URLSearchParams(searchParams);
+      category === 'all'
+        ? updatedParams.delete('category')
+        : updatedParams.set('category', category);
+      navigate(`${pathname}?${updatedParams.toString()}`);
+    });
+  }, [category]);
+
+  // 🔃 Reset all query parameters
+  const handleClearFilters = () => {
+    startTransition(() => {
+      navigate({ pathname });
+    });
+  };
+
+  // 🔀 Toggle sort order
   const toggleSortOrder = () => {
-    const newOrder = sortOrder === "asc" ? "desc" : "asc";
+    const newOrder = sortOrder === 'asc' ? 'desc' : 'asc';
     const updatedParams = new URLSearchParams(searchParams);
-    updatedParams.set("sortby", newOrder);
-    navigate(`${pathname}?${updatedParams.toString()}`);
+    updatedParams.set('sortby', newOrder);
+
+    startTransition(() => {
+      navigate(`${pathname}?${updatedParams.toString()}`);
+    });
+
     setSortOrder(newOrder);
   };
 
   return (
     <div className="flex flex-col lg:flex-row gap-4 lg:items-center justify-between w-full bg-white p-4 rounded-xl shadow-md">
-      {/* Search bar input with responsive styles */}
+      {/* 🔍 Search bar input */}
       <div className="relative w-full lg:w-[40%]">
         <MdSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-xl" />
         <input
@@ -105,13 +112,13 @@ const Filter = () => {
         />
       </div>
 
-      {/* Select dropdown, sort, and clear filter buttons with responsive design */}
+      {/* ⬇️ Select dropdown + sorting */}
       <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-[58%] justify-end items-center">
         <FormControl
           size="medium"
           sx={{
             minWidth: 180,
-            width: "100%",
+            width: '100%',
             maxWidth: 240,
             '& .MuiOutlinedInput-root': {
               borderRadius: '12px',
@@ -121,7 +128,10 @@ const Filter = () => {
               boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
               '& fieldset': { borderColor: '#93c5fd' },
               '&:hover fieldset': { borderColor: '#6366f1' },
-              '&.Mui-focused fieldset': { borderColor: '#4338ca', borderWidth: '2px' },
+              '&.Mui-focused fieldset': {
+                borderColor: '#4338ca',
+                borderWidth: '2px',
+              },
             },
             '& .MuiInputLabel-root': {
               fontWeight: 600,
@@ -155,7 +165,7 @@ const Filter = () => {
           </Select>
         </FormControl>
 
-        {/* Sort order toggle */}
+        {/* 🔃 Sort button */}
         <Tooltip title="Sort by price">
           <Button
             onClick={toggleSortOrder}
@@ -180,11 +190,11 @@ const Filter = () => {
             }}
           >
             Sort by
-            {sortOrder === "asc" ? <FiArrowUp size={18} /> : <FiArrowDown size={18} />}
+            {sortOrder === 'asc' ? <FiArrowUp size={18} /> : <FiArrowDown size={18} />}
           </Button>
         </Tooltip>
 
-        {/* Clear filters button */}
+        {/* ❌ Clear filter */}
         <Button
           variant="contained"
           onClick={handleClearFilters}

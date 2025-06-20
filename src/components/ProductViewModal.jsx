@@ -24,8 +24,10 @@ function ProductViewModal({ open, setOpen, product, isAvailable }) {
 
   return (
     <Dialog open={open} onClose={handleClose} className="relative z-50">
+      {/* BACKDROP */}
       <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
 
+      {/* CENTERED MODAL PANEL */}
       <div className="fixed inset-0 flex items-center justify-center p-4">
         <DialogPanel className="bg-white rounded-xl p-6 shadow-[inset_0_0_5px_rgba(0,0,0,0.05),0_10px_20px_rgba(0,0,0,0.15)] hover:shadow-[inset_0_0_5px_rgba(0,0,0,0.05),0_15px_30px_rgba(0,0,0,0.25)] transform hover:scale-[1.01] transition-all duration-300 hover:bg-gradient-to-br from-white to-slate-100 animate-fade-in-up max-w-md w-full">
           
@@ -34,10 +36,12 @@ function ProductViewModal({ open, setOpen, product, isAvailable }) {
           </DialogTitle>
 
           <div className="w-full h-48 mb-4 flex justify-center items-center overflow-hidden">
+            {/* IMAGE TRANSITION KEPT, PERFORMANT IF NOT BLOCKING EVENT */}
             <img
               src={image}
               alt={productName}
               className="h-full w-full object-contain transition-transform duration-300 hover:scale-105"
+              loading="lazy"
             />
           </div>
 

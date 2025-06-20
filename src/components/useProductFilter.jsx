@@ -1,42 +1,55 @@
-import { useEffect } from "react";
+import { useEffect, useTransition } from "react";
 import { useDispatch } from "react-redux";
 import { useSearchParams } from "react-router-dom";
 import { fetchProducts } from "../store/actions";
 
 const useProductFilter = () => {
-    const [searchParams] = useSearchParams();
-    const dispatch = useDispatch();
+  const [searchParams] = useSearchParams();
+  const dispatch = useDispatch();
 
-    useEffect(() => {
-        const params = new URLSearchParams();
+  // 🧠 Initialize React transition for non-blocking updates
+  const [_, startTransition] = useTransition();
 
-        const currentPage = searchParams.get("page")
-            ? Number(searchParams.get("page"))
-            : 1;
+  useEffect(() => {
+    const params = new URLSearchParams();
 
-        params.set("pageNumber", currentPage - 1)
-            
-        const sortOrder = searchParams.get("sortby") || "asc";
-        const categoryParams = searchParams.get("category") || null;
-        const keyword = searchParams.get("keyword") || null;
-        params.set("sortBy", "price");
-        params.set("sortOrder", sortOrder);
+    const currentPage = searchParams.get("page")
+      ? Number(searchParams.get("page"))
+      : 1;
 
-        if (categoryParams) {
-            params.set("category", categoryParams); 
-        }
+    params.set("pageNumber", currentPage - 1);
 
-        if(keyword) {
-            params.set("keyword", keyword);
-        }
+    const sortOrder = searchParams.get("sortby") || "asc";
+    const categoryParams = searchParams.get("category") || null;
+    const keyword = searchParams.get("keyword") || null;
 
-        const queryString = params.toString();
-        console.log("QUERY STRING", queryString);
+    params.set("sortBy", "price");
+    params.set("sortOrder", sortOrder);
 
-        dispatch(fetchProducts(queryString));
+    if (categoryParams) {
+      params.set("category", categoryParams);
+    }
 
-    }, [dispatch, searchParams]);
+    if (keyword) {
+      params.set("keyword", keyword);
+    }
 
+    const queryString = params.toString();
+    console.log("QUERY STRING", queryString);
+
+    /**
+     * DEFER HEAVY DISPATCH:
+     * Postpone dispatch to avoid blocking the thread during rendering or interactions.
+     *
+     * ✅ REPLACED setTimeout(...) with startTransition(...)
+     *    - Improves responsiveness
+     *    - Prevents [Violation] 'setTimeout' handler took <N>ms
+     */
+    startTransition(() => {
+      dispatch(fetchProducts(queryString));
+    });
+
+  }, [dispatch, searchParams]);
 };
 
 export default useProductFilter;

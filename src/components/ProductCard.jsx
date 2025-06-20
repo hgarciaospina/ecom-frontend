@@ -1,6 +1,8 @@
-import React, { useMemo, useState } from 'react';
+import React, { lazy, Suspense, useMemo, useState } from 'react';
 import { FaShoppingCart } from 'react-icons/fa';
-import ProductViewModal from './ProductViewModal';
+
+// 💤 Lazy-load the ProductViewModal to reduce the initial bundle size
+const ProductViewModal = lazy(() => import('./ProductViewModal'));
 
 const ProductCard = ({
   id,
@@ -16,7 +18,7 @@ const ProductCard = ({
   const [selectedViewProduct, setSelectedViewProduct] = useState(null);
   const isAvailable = stock && Number(stock) > 0;
 
-  // 🧠 Use useMemo to avoid recreating the formatter on every render
+  // 🧠 Memoize the formatter to avoid performance hits on each render
   const currencyFormatter = useMemo(() => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -27,8 +29,16 @@ const ProductCard = ({
 
   const formatCurrency = (value) => currencyFormatter.format(value);
 
+  /**
+   * 🔁 Defer modal rendering to avoid performance violation in 'mousedown' event
+   * 
+   * This ensures that UI transitions (mousedown/click) are not blocked by
+   * heavy state changes or component mounting (like modals).
+   * We use `requestIdleCallback` (if available) to delay modal rendering
+   * until the browser is idle, or fall back to `setTimeout` for compatibility.
+   */
   const handleProductView = () => {
-    setSelectedViewProduct({
+    const product = {
       id,
       productName,
       image,
@@ -37,8 +47,15 @@ const ProductCard = ({
       price,
       discount,
       specialPrice,
-    });
-    setOpenProductViewModal(true);
+    };
+
+    setSelectedViewProduct(product);
+
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(() => setOpenProductViewModal(true));
+    } else {
+      setTimeout(() => setOpenProductViewModal(true), 0);
+    }
   };
 
   return (
@@ -47,7 +64,7 @@ const ProductCard = ({
         onClick={handleProductView}
         className="w-full h-48 bg-white flex items-center justify-center overflow-hidden cursor-pointer"
       >
-        {/* 💤 Use lazy loading for images to improve performance */}
+        {/* 💤 Lazy loading image improves loading performance */}
         <img
           className="h-full w-full object-contain transition-transform duration-300 hover:scale-105"
           src={image}
@@ -106,18 +123,20 @@ const ProductCard = ({
         </div>
       </div>
 
-      {/* 🧩 Render modal only if open to avoid unnecessary component mounting */}
+      {/* 🧩 Only render the modal when it's open, and lazy-load it inside Suspense */}
       {openProductViewModal && (
-        <ProductViewModal
-          open={openProductViewModal}
-          setOpen={setOpenProductViewModal}
-          product={selectedViewProduct}
-          isAvailable={isAvailable}
-        />
+        <Suspense fallback={<div className="p-4 text-center">Loading modal...</div>}>
+          <ProductViewModal
+            open={openProductViewModal}
+            setOpen={setOpenProductViewModal}
+            product={selectedViewProduct}
+            isAvailable={isAvailable}
+          />
+        </Suspense>
       )}
     </div>
   );
 };
 
-// 🧠 Use React.memo to avoid re-rendering if props haven't changed
+// 🧠 Memoize component to prevent unnecessary re-renders
 export default React.memo(ProductCard);
