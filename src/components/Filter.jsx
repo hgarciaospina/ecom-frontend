@@ -7,11 +7,14 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 const Filter = () => {
   // Initial category options
   const initialCategories = [
-    { categoryId: 1, categoryName: "Electronics" },
-    { categoryId: 2, categoryName: "Clothing" },
-    { categoryId: 3, categoryName: "Furniture" },
-    { categoryId: 4, categoryName: "Books" },
-    { categoryId: 5, categoryName: "Toys" },
+    { categoryId: 1, categoryName: "Smart Watch" },
+    { categoryId: 2, categoryName: "Headphones" },
+    { categoryId: 3, categoryName: "Laptop" },
+    { categoryId: 4, categoryName: "Electronics" },
+    { categoryId: 5, categoryName: "Clothing" },
+    { categoryId: 6, categoryName: "Furniture" },
+    { categoryId: 7, categoryName: "Books" },
+    { categoryId: 8, categoryName: "Toys" },
   ];
 
   const [searchParams] = useSearchParams();
