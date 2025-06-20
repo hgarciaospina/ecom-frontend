@@ -5,6 +5,7 @@ import { MdSearch } from 'react-icons/md';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 const Filter = () => {
+  // Initial category options
   const initialCategories = [
     { categoryId: 1, categoryName: "Electronics" },
     { categoryId: 2, categoryName: "Clothing" },
@@ -14,110 +15,117 @@ const Filter = () => {
   ];
 
   const [searchParams] = useSearchParams();
-  const params = new URLSearchParams(searchParams);
   const pathname = useLocation().pathname;
   const navigate = useNavigate();
 
+  // Sorted categories alphabetically
   const categories = initialCategories.sort((a, b) =>
     a.categoryName.localeCompare(b.categoryName)
   );
 
+  // Local state for filters
   const [category, setCategory] = useState("all");
   const [sortOrder, setSortOrder] = useState("asc");
   const [searchTerm, setSearchTerm] = useState("");
 
+  // Initialize filter state from query parameters
   useEffect(() => {
-    const currentCategory = searchParams.get("category") || "all";
-    const currentSortOrder = searchParams.get("sortby") || "asc";
-    const currentSearchTerm = searchParams.get("keyword") || "";
-
-    setCategory(currentCategory);
-    setSortOrder(currentSortOrder);
-    setSearchTerm(currentSearchTerm);
+    setCategory(searchParams.get("category") || "all");
+    setSortOrder(searchParams.get("sortby") || "asc");
+    setSearchTerm(searchParams.get("keyword") || "");
   }, [searchParams]);
 
+  // Update URL with debounce when search term changes
   useEffect(() => {
     const handler = setTimeout(() => {
-      searchTerm
-        ? searchParams.set("keyword", searchTerm)
-        : searchParams.delete("keyword");
-      navigate(`${pathname}?${searchParams.toString()}`);
-    }, 700);
-    
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [searchParams, searchTerm, navigate, pathname]);
+      /**
+       * WHY WE USE `updatedParams` INSTEAD OF MODIFYING `searchParams`:
+       *
+       * React Router's `useSearchParams()` returns a special, immutable object.
+       * Direct mutation (e.g. searchParams.set(...)) and then triggering `navigate(...)`
+       * during the render phase causes a React error:
+       *
+       * > "Cannot update a component (`BrowserRouter`) while rendering a different component (`Filter`)."
+       *
+       * SOLUTION:
+       * We clone the object with `new URLSearchParams(searchParams)` and
+       * only call `navigate(...)` from within a controlled effect or event handler.
+       */
+      const updatedParams = new URLSearchParams(searchParams);
 
+      searchTerm.trim()
+        ? updatedParams.set("keyword", searchTerm.trim())
+        : updatedParams.delete("keyword");
+
+      navigate(`${pathname}?${updatedParams.toString()}`);
+    }, 700);
+
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
+
+  // Handle category selection change
   const handleCategoryChange = (event) => {
     const selectedCategory = event.target.value;
- 
+    const updatedParams = new URLSearchParams(searchParams);
+
     selectedCategory === "all"
-      ? params.delete("category")
-      : params.set("category", selectedCategory);
+      ? updatedParams.delete("category")
+      : updatedParams.set("category", selectedCategory);
 
-    navigate(`${pathname}?${params}`);
-    setCategory(event.target.value);
+    navigate(`${pathname}?${updatedParams.toString()}`);
+    setCategory(selectedCategory);
   };
 
-  const handleClearFilters = () => {
-    navigate({ pathname : window.location.pathname});
-  };
+  // Clear all query parameters from URL
+  const handleClearFilters = () => navigate({ pathname });
 
+  // Toggle sort order and update query string
   const toggleSortOrder = () => {
-      setSortOrder((prevOrder) => {
-        const newOrder = (prevOrder === "asc") ? "desc" : "asc";
-        params.set("sortby", newOrder);
-        navigate(`${pathname}?${params}`);
-        return newOrder;
-    })
+    const newOrder = sortOrder === "asc" ? "desc" : "asc";
+    const updatedParams = new URLSearchParams(searchParams);
+    updatedParams.set("sortby", newOrder);
+    navigate(`${pathname}?${updatedParams.toString()}`);
+    setSortOrder(newOrder);
   };
-  
+
   return (
-    <div className="flex lg:flex-row flex-col-reverse lg:justify-between justify-center items-center gap-4 px-4 py-4 bg-white shadow-md rounded-xl">
-      {/* SEARCH BAR */}
-      <div className="relative 2xl:w-[450px] sm:w-[420px] w-full">
+    <div className="flex flex-col lg:flex-row gap-4 lg:items-center justify-between w-full bg-white p-4 rounded-xl shadow-md">
+      {/* Search bar input with responsive styles */}
+      <div className="relative w-full lg:w-[40%]">
         <MdSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-xl" />
         <input
           type="text"
           placeholder="Search products"
+          value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full py-2 pl-10 pr-4 rounded-xl border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 text-gray-800 placeholder-gray-400"
         />
       </div>
 
-      {/* CATEGORY SELECT + SORT + CLEAR FILTER */}
-      <div className="flex flex-row items-center gap-4">
+      {/* Select dropdown, sort, and clear filter buttons with responsive design */}
+      <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-[58%] justify-end items-center">
         <FormControl
           size="medium"
           sx={{
-            minWidth: 200,
+            minWidth: 180,
+            width: "100%",
+            maxWidth: 240,
             '& .MuiOutlinedInput-root': {
               borderRadius: '12px',
               background: 'linear-gradient(to right, #c7d2fe, #e0f2fe)',
               height: 48,
-              paddingRight: 1,
+              px: 1,
               boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-              '& fieldset': {
-                borderColor: '#93c5fd',
-              },
-              '&:hover fieldset': {
-                borderColor: '#6366f1',
-              },
-              '&.Mui-focused fieldset': {
-                borderColor: '#4338ca',
-                borderWidth: '2px',
-              },
+              '& fieldset': { borderColor: '#93c5fd' },
+              '&:hover fieldset': { borderColor: '#6366f1' },
+              '&.Mui-focused fieldset': { borderColor: '#4338ca', borderWidth: '2px' },
             },
             '& .MuiInputLabel-root': {
               fontWeight: 600,
               color: '#3b82f6',
               backgroundColor: 'white',
               px: 0.5,
-              transform: 'translate(14px, -8px) scale(0.75)',
-              '&.Mui-focused': {
-                color: '#4338ca',
-              },
+              '&.Mui-focused': { color: '#4338ca' },
             },
             '& .MuiSelect-select': {
               padding: '12px',
@@ -144,8 +152,8 @@ const Filter = () => {
           </Select>
         </FormControl>
 
-        {/* SORT BUTTON & CLEAR FILTER*/}
-        <Tooltip title="Sort by price: asc">
+        {/* Sort order toggle */}
+        <Tooltip title="Sort by price">
           <Button
             onClick={toggleSortOrder}
             variant="contained"
@@ -158,6 +166,8 @@ const Filter = () => {
               borderRadius: '12px',
               height: 48,
               px: 2.5,
+              width: '100%',
+              maxWidth: 160,
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
@@ -166,17 +176,12 @@ const Filter = () => {
               },
             }}
           >
-            Sort By
-            {sortOrder === "asc" ? (
-              <FiArrowUp size={18} />
-            ) : (
-              <FiArrowDown size={18} />
-            )}
-           
+            Sort by
+            {sortOrder === "asc" ? <FiArrowUp size={18} /> : <FiArrowDown size={18} />}
           </Button>
         </Tooltip>
 
-        {/* CLEAR FILTER BUTTON */}
+        {/* Clear filters button */}
         <Button
           variant="contained"
           onClick={handleClearFilters}
@@ -189,6 +194,8 @@ const Filter = () => {
             borderRadius: '12px',
             height: 48,
             px: 2.5,
+            width: '100%',
+            maxWidth: 160,
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
@@ -198,7 +205,7 @@ const Filter = () => {
             },
           }}
         >
-          Clear Filter
+          Clear
           <FiRefreshCw size={18} />
         </Button>
       </div>
