@@ -12,42 +12,32 @@ import { FiArrowDown, FiArrowUp, FiRefreshCw } from 'react-icons/fi';
 import { MdSearch } from 'react-icons/md';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
-const Filter = () => {
-  // 🧩 Initial category options
-  const initialCategories = [
-    { categoryId: 1, categoryName: 'Smart Watch' },
-    { categoryId: 2, categoryName: 'Headphones' },
-    { categoryId: 3, categoryName: 'Laptop' },
-    { categoryId: 4, categoryName: 'Electronics' },
-    { categoryId: 5, categoryName: 'Clothing' },
-    { categoryId: 6, categoryName: 'Furniture' },
-    { categoryId: 7, categoryName: 'Books' },
-    { categoryId: 8, categoryName: 'Toys' },
-  ];
-
+const Filter = ({ categories }) => {
   const [searchParams] = useSearchParams();
   const pathname = useLocation().pathname;
   const navigate = useNavigate();
 
-  const categories = initialCategories.sort((a, b) =>
+  // ✅ Sort categories alphabetically by name
+  const sortedCategories = [...categories].sort((a, b) =>
     a.categoryName.localeCompare(b.categoryName)
   );
 
+  // 🔘 States for category, sort order, and search input
   const [category, setCategory] = useState('all');
   const [sortOrder, setSortOrder] = useState('asc');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // ✅ React 19's useTransition avoids UI blocking by deferring transitions
+  // ⏳ React 19: optimize state transitions
   const [isPending, startTransition] = useTransition();
 
-  // 🧠 Sync initial state from query string
+  // 🧠 Load initial filter states from URL query params
   useEffect(() => {
     setCategory(searchParams.get('category') || 'all');
     setSortOrder(searchParams.get('sortby') || 'asc');
     setSearchTerm(searchParams.get('keyword') || '');
   }, [searchParams]);
 
-  // ⏳ Debounced search term update
+  // ⌛ Debounced update for search input (700ms)
   useEffect(() => {
     const handler = setTimeout(() => {
       const updatedParams = new URLSearchParams(searchParams);
@@ -59,13 +49,13 @@ const Filter = () => {
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
-  // ✅ CATEGORY CHANGE: State update only, navigation is deferred
+  // 🔄 Handle category selection
   const handleCategoryChange = (event) => {
     const selected = event.target.value;
-    flushSync(() => setCategory(selected)); // Force update before UI paint
+    flushSync(() => setCategory(selected)); // ensures state updates immediately before paint
   };
 
-  // 🧠 Navigation after category is updated
+  // 🔁 Update URL when category changes
   useEffect(() => {
     if (category === (searchParams.get('category') || 'all')) return;
 
@@ -78,14 +68,14 @@ const Filter = () => {
     });
   }, [category]);
 
-  // 🔃 Reset all query parameters
+  // ❌ Clear all filters and reset URL
   const handleClearFilters = () => {
     startTransition(() => {
       navigate({ pathname });
     });
   };
 
-  // 🔀 Toggle sort order
+  // 🔀 Toggle sort order (asc <-> desc)
   const toggleSortOrder = () => {
     const newOrder = sortOrder === 'asc' ? 'desc' : 'asc';
     const updatedParams = new URLSearchParams(searchParams);
@@ -112,8 +102,9 @@ const Filter = () => {
         />
       </div>
 
-      {/* ⬇️ Select dropdown + sorting */}
+      {/* ⬇️ Dropdown and sorting buttons */}
       <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-[58%] justify-end items-center">
+        {/* 🧾 Category dropdown */}
         <FormControl
           size="medium"
           sx={{
@@ -157,7 +148,7 @@ const Filter = () => {
             label="Category"
           >
             <MenuItem value="all">All</MenuItem>
-            {categories.map((item) => (
+            {sortedCategories.map((item) => (
               <MenuItem key={item.categoryId} value={item.categoryName}>
                 {item.categoryName}
               </MenuItem>
@@ -165,7 +156,7 @@ const Filter = () => {
           </Select>
         </FormControl>
 
-        {/* 🔃 Sort button */}
+        {/* ⬆️⬇️ Sort by price */}
         <Tooltip title="Sort by price">
           <Button
             onClick={toggleSortOrder}
@@ -194,7 +185,7 @@ const Filter = () => {
           </Button>
         </Tooltip>
 
-        {/* ❌ Clear filter */}
+        {/* ❌ Clear filters button */}
         <Button
           variant="contained"
           onClick={handleClearFilters}

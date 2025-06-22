@@ -1,16 +1,26 @@
 import { useEffect, useState } from "react";
 import { FaExclamationTriangle } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
+import { fetchCategories } from "../store/actions";
 import ElegantSpinner from "./ElegantSpinner"; // ✅ Import spinner component
 import Filter from "./Filter";
 import ProductCard from "./ProductCard";
 import useProductFilter from "./useProductFilter";
 
+// http://localhost:xxxx?keyword=clothing&sortby=desc
+
+// 1. Make sure url is updated with filter values
+// 2. Use this filter values for getting data from backend 
+
 const Products = () => {
   const { isLoading, errorMessage } = useSelector((state) => state.errors);
-  const { products } = useSelector((state) => state.products);
+  const { products, categories } = useSelector((state) => state.products);
   const dispatch = useDispatch();
   useProductFilter();
+
+  useEffect(() => {
+    dispatch(fetchCategories());
+  }, [dispatch]);
 
   // ⏳ Local state to delay spinner visibility (prevents flashing for fast requests)
   const [showSpinner, setShowSpinner] = useState(false);
@@ -29,7 +39,7 @@ const Products = () => {
 
   return (
     <div className="lg:px-14 sm:px-8 px-4 py-14 2xl:w-[90%] 2xl:mx-auto">
-      <Filter />
+      <Filter categories={categories ? categories: []}/>
 
       {/* 🧪 Elegant loading state */}
       {isLoading && showSpinner ? (
