@@ -1,5 +1,6 @@
 import React, { lazy, Suspense, useMemo, useState } from 'react';
 import { FaShoppingCart } from 'react-icons/fa';
+import truncateText from './truncateText';
 
 // 💤 Lazy-load the ProductViewModal to reduce the initial bundle size
 const ProductViewModal = lazy(() => import('./ProductViewModal'));
@@ -78,11 +79,13 @@ const ProductCard = ({
           onClick={handleProductView}
           className="text-lg font-semibold mb-2 cursor-pointer"
         >
-          {productName}
+          {truncateText(productName, 50)}
         </h2>
 
         <div className="min-h-20 max-h-20">
-          <p className="text-gray-600 text-sm text-justify">{description}</p>
+          <p className="text-gray-600 text-sm text-justify">
+            {truncateText(description, 80)}
+          </p>
         </div>
 
         <div className="flex items-center justify-between mt-2">
