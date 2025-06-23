@@ -1,6 +1,5 @@
+import Products from './components/products/Products';
 import './index.css';
-import { useState } from 'react';
-import Products from './components/products';
 
 function App() {
   return (

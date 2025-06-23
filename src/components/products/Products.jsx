@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { FaExclamationTriangle } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchCategories } from "../store/actions";
-import ElegantSpinner from "./ElegantSpinner"; // ✅ Import spinner component
+import useProductFilter from "../../hooks/useProductFilter";
+import { fetchCategories } from "../../store/actions";
+import ElegantSpinner from "../shared/ElegantSpinner"; // ✅ Import spinner component
+import Paginations from "../shared/Paginations";
+import ProductCard from "../shared/ProductCard";
 import Filter from "./Filter";
-import Paginations from "./Paginations";
-import ProductCard from "./ProductCard";
-import useProductFilter from "./useProductFilter";
 
 // http://localhost:xxxx?keyword=clothing&sortby=desc
 

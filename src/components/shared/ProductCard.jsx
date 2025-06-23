@@ -1,9 +1,9 @@
 import React, { lazy, Suspense, useMemo, useState } from 'react';
 import { FaShoppingCart } from 'react-icons/fa';
-import truncateText from './truncateText';
+import truncateText from '../../utils/truncateText';
 
 // 💤 Lazy-load the ProductViewModal to reduce the initial bundle size
-const ProductViewModal = lazy(() => import('./ProductViewModal'));
+const ProductViewModal = lazy(() => import('../shared/ProductViewModal'));
 
 const ProductCard = ({
   id,
